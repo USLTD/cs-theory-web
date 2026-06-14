@@ -5,8 +5,7 @@ import { Button } from "#components/ui/Button";
 import { Panel, PanelHeader, PanelTitle } from "#components/ui/Panel";
 import { AST_EXAMPLES } from "#constants/examples";
 import { useToast } from "#hooks/use-toast";
-import { cn } from "#lib/cn";
-import LogicWorker from "#lib/logicWorker?worker";
+import { cn } from "#lib/utils";
 import type { ASTOutputs } from "#types/ast";
 
 export const NormalFormWorkspace = memo(function NormalFormWorkspace() {
@@ -17,7 +16,10 @@ export const NormalFormWorkspace = memo(function NormalFormWorkspace() {
 	const workerRef = useRef<Worker | null>(null);
 
 	useEffect(() => {
-		workerRef.current = new LogicWorker();
+		workerRef.current = new Worker(
+			new URL("#lib/logic.worker.js", import.meta.url),
+			{ type: "module" },
+		);
 		return () => workerRef.current?.terminate();
 	}, []);
 

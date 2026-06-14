@@ -1,7 +1,7 @@
 import { Icon } from "#components/Icon";
 import { buttonVariants } from "#components/ui/Button";
 import { workspaceRoutes } from "#constants/routes";
-import { cn } from "#lib/cn";
+import { cn } from "#lib/utils";
 
 export default function Page() {
 	return (

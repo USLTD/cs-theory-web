@@ -1,6 +1,6 @@
 import { Icon } from "#components/Icon";
 import { buttonVariants } from "#components/ui/Button";
-import { cn } from "#lib/cn";
+import { cn } from "#lib/utils";
 
 export default function Page({ is404 }: { is404: boolean }) {
 	if (is404) {

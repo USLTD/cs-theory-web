@@ -9,8 +9,8 @@ import {
 	useState,
 } from "react";
 import type { ToastMessage } from "#/types/toast";
-import type { IconName } from "#constants/icons-16x16";
-import { cn } from "#lib/cn";
+import type icons from "#constants/icons-16x16";
+import { cn } from "#lib/utils";
 import { Icon } from "./Icon";
 
 type ShowToastFunction = (
@@ -42,7 +42,7 @@ const toastVariants = cva(
 	},
 );
 
-const iconByType: Record<ToastMessage["type"], IconName> = {
+const iconByType: Record<ToastMessage["type"], keyof typeof icons> = {
 	success: "tick",
 	error: "error",
 	warning: "exclamation",
@@ -91,7 +91,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 						className={cn(toastVariants({ type: toast.type }))}
 					>
 						<div className="mt-0.5 shrink-0">
-							<Icon name={iconByType[toast.type]} />
+							<Icon name={iconByType[toast.type]} postfix="16x16" />
 						</div>
 						<div className="min-w-0">
 							<h4 className="text-xs font-bold">{toast.title}</h4>

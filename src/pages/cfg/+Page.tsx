@@ -13,7 +13,6 @@ import { Badge } from "#components/ui/Badge";
 import { Button } from "#components/ui/Button";
 import { Panel, PanelHeader, PanelTitle } from "#components/ui/Panel";
 import { CFG_PRESETS } from "#constants/presets";
-import CFGWorker from "#lib/cfgWorker?worker";
 
 interface GenerationResult {
 	str: string;
@@ -36,7 +35,12 @@ export default function Page() {
 	const workerRef = useRef<Worker | null>(null);
 
 	useEffect(() => {
-		workerRef.current = new CFGWorker();
+		workerRef.current = new Worker(
+			new URL("#lib/cfg.worker.js", import.meta.url),
+			{
+				type: "module",
+			},
+		);
 		return () => workerRef.current?.terminate();
 	}, []);
 
@@ -133,7 +137,7 @@ export default function Page() {
 						<select
 							value={presetSelection}
 							onChange={handleLoadPreset}
-							className="w-full rounded-portal-sm border border-slate-300 bg-white px-2 py-[5px] text-xs font-sans shadow-sm sm:w-52"
+							className="w-full rounded-portal-sm border border-slate-300 bg-white px-2 py-1.25 text-xs font-sans shadow-sm sm:w-52"
 						>
 							<option value="anbn">aⁿbⁿ (Equal Counts)</option>
 							<option value="brackets">Balanced Parentheses</option>
@@ -152,7 +156,7 @@ export default function Page() {
 								value={startSymbol}
 								onChange={(e) => setStartSymbol(e.target.value)}
 								type="text"
-								className="w-16 rounded-portal-sm border border-slate-300 bg-white py-[5px] text-center font-bold text-purple-800 shadow-inner"
+								className="w-16 rounded-portal-sm border border-slate-300 bg-white py-1.25 text-center font-bold text-purple-800 shadow-inner"
 							/>
 						</div>
 
@@ -229,12 +233,12 @@ export default function Page() {
 							onChange={(e) => setMaxLen(Number(e.target.value))}
 							min={0}
 							max={15}
-							className="w-20 rounded-portal-sm border border-slate-300 bg-white px-2 py-[5px] font-mono shadow-inner"
+							className="w-20 rounded-portal-sm border border-slate-300 bg-white px-2 py-1.25 font-mono shadow-inner"
 						/>
 						<Button
 							onClick={generateStrings}
 							variant="primary"
-							className="w-full sm:w-auto justify-center px-4 py-[5px] text-xs ml-auto"
+							className="w-full sm:w-auto justify-center px-4 py-1.25 text-xs ml-auto"
 						>
 							<Icon name="lightning" />
 							Generate

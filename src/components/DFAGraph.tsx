@@ -1,5 +1,11 @@
-import { type MouseEvent, memo, useEffect, useRef, useState } from "react";
-import { is } from "typia";
+import {
+	memo,
+	type PointerEvent,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import type { DFATransitions } from "#types/dfa";
 
 interface DFAGraphProps {
@@ -39,20 +45,30 @@ export const DFAGraph = memo(function DFAGraph({
 	wrapperClassName = "",
 }: DFAGraphProps) {
 	const svgRef = useRef<SVGSVGElement>(null);
+	const containerRef = useRef<HTMLDivElement>(null);
+
 	const [nodesMap, setNodesMap] = useState<
 		Record<string, { x: number; y: number }>
 	>({});
 	const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
+	const viewRef = useRef(view);
+
 	const [dragState, setDragState] = useState<{
 		type: "node" | "pan";
 		id: string | null;
 		lastX: number;
 		lastY: number;
+		pointerId: number;
 	} | null>(null);
 
 	const [dimensions, setDimensions] = useState({ width: 600, height: 300 });
-	const containerRef = useRef<HTMLDivElement>(null);
 
+	// Sync view ref for non-react event listeners (pinch-zoom)
+	useEffect(() => {
+		viewRef.current = view;
+	}, [view]);
+
+	// Responsive container setup
 	useEffect(() => {
 		if (!containerRef.current) return;
 		const observer = new ResizeObserver((entries) => {
@@ -70,12 +86,13 @@ export const DFAGraph = memo(function DFAGraph({
 	const { width, height } = dimensions;
 	const nodeR = 18;
 
+	// Initial Circular Layout Calculation
 	useEffect(() => {
 		setNodesMap((prev) => {
 			const newMap = { ...prev };
 			const cx = width / 2,
 				cy = height / 2,
-				radius = 100;
+				radius = Math.min(width, height) / 3.5;
 			let dirty = false;
 
 			states.forEach((s, i) => {
@@ -102,11 +119,33 @@ export const DFAGraph = memo(function DFAGraph({
 
 			return dirty ? newMap : prev;
 		});
-	}, [states]);
+	}, [width, height, states]);
 
+	// Optimized edge map generation
+	const edgesMap = useMemo(() => {
+		const map: Record<string, string[]> = {};
+		states.forEach((u) => {
+			alphabet.forEach((sym) => {
+				const v = transitions[u]?.[sym];
+				if (v && v !== "REJECT") {
+					const key = `${u}->${v}`;
+					if (!map[key]) map[key] = [];
+					map[key].push(sym);
+				}
+			});
+		});
+		return map;
+	}, [states, alphabet, transitions]);
+
+	// Pinch to Zoom & Mouse Wheel Logic
 	useEffect(() => {
 		const node = svgRef.current;
 		if (!node) return;
+
+		let pinchActive = false;
+		let initialDist = 0;
+		let initialScale = 1;
+
 		const onWheel = (e: WheelEvent) => {
 			e.preventDefault();
 			const scaleAdj = e.deltaY > 0 ? 0.9 : 1.1;
@@ -115,37 +154,90 @@ export const DFAGraph = memo(function DFAGraph({
 				scale: Math.min(Math.max(0.3, prev.scale * scaleAdj), 3),
 			}));
 		};
-		node.addEventListener("wheel", onWheel, { passive: false });
 
-		return () => node.removeEventListener("wheel", onWheel);
+		const onTouchStart = (e: TouchEvent) => {
+			if (e.touches.length === 2) {
+				e.preventDefault();
+				pinchActive = true;
+				initialDist = Math.hypot(
+					e.touches[0].clientX - e.touches[1].clientX,
+					e.touches[0].clientY - e.touches[1].clientY,
+				);
+				initialScale = viewRef.current.scale;
+			}
+		};
+
+		const onTouchMove = (e: TouchEvent) => {
+			if (e.touches.length === 2 && pinchActive) {
+				e.preventDefault();
+				const dist = Math.hypot(
+					e.touches[0].clientX - e.touches[1].clientX,
+					e.touches[0].clientY - e.touches[1].clientY,
+				);
+				const scaleAdj = dist / initialDist;
+				setView((prev) => ({
+					...prev,
+					scale: Math.min(Math.max(0.3, initialScale * scaleAdj), 3),
+				}));
+			}
+		};
+
+		const onTouchEnd = (e: TouchEvent) => {
+			if (e.touches.length < 2) {
+				pinchActive = false;
+			}
+		};
+
+		node.addEventListener("wheel", onWheel, { passive: false });
+		node.addEventListener("touchstart", onTouchStart, { passive: false });
+		node.addEventListener("touchmove", onTouchMove, { passive: false });
+		node.addEventListener("touchend", onTouchEnd);
+		node.addEventListener("touchcancel", onTouchEnd);
+
+		return () => {
+			node.removeEventListener("wheel", onWheel);
+			node.removeEventListener("touchstart", onTouchStart);
+			node.removeEventListener("touchmove", onTouchMove);
+			node.removeEventListener("touchend", onTouchEnd);
+			node.removeEventListener("touchcancel", onTouchEnd);
+		};
 	}, []);
 
-	const handleMouseDown = (e: MouseEvent, nodeId: string | null) => {
+	// Unified Pointer Events for Dragging & Panning
+	const handlePointerDown = (
+		e: PointerEvent<SVGSVGElement | SVGGElement>,
+		nodeId: string | null,
+	) => {
+		if (!e.isPrimary) return; // Ignore multi-touch secondary fingers for drag
 		e.stopPropagation();
+
+		// Capture the pointer to track movement even outside the element
+		(e.target as Element).setPointerCapture(e.pointerId);
+
 		setDragState({
 			type: nodeId ? "node" : "pan",
 			id: nodeId,
 			lastX: e.clientX,
 			lastY: e.clientY,
+			pointerId: e.pointerId,
 		});
 	};
 
-	const handleMouseMove = (e: MouseEvent) => {
-		if (!dragState) return;
+	const handlePointerMove = (e: PointerEvent<SVGSVGElement>) => {
+		if (!dragState || dragState.pointerId !== e.pointerId) return;
+
 		const dx = e.clientX - dragState.lastX;
 		const dy = e.clientY - dragState.lastY;
 		const id = dragState.id;
 
-		if (dragState.type === "node" && is<string>(id)) {
-			setNodesMap((prev) => {
-				return {
-					...prev,
-					[id]: {
-						x: prev[id].x + dx / view.scale,
-						y: prev[id].y + dy / view.scale,
-					},
-				};
-			});
+		if (dragState.type === "node" && typeof id === "string") {
+			setNodesMap((prev) => ({
+				...prev,
+				[id]: {
+					x: prev[id].x + dx / view.scale,
+					y: prev[id].y + dy / view.scale,
+				},
+			}));
 		} else if (dragState.type === "pan") {
 			setView((prev) => ({ ...prev, x: prev.x + dx, y: prev.y + dy }));
 		}
@@ -155,19 +247,16 @@ export const DFAGraph = memo(function DFAGraph({
 		);
 	};
 
-	const handleMouseUp = () => setDragState(null);
-
-	const edgesMap: Record<string, string[]> = {};
-	states.forEach((u) => {
-		alphabet.forEach((sym) => {
-			const v = transitions[u]?.[sym];
-			if (v && v !== "REJECT") {
-				const key = `${u}->${v}`;
-				if (!edgesMap[key]) edgesMap[key] = [];
-				edgesMap[key].push(sym);
+	const handlePointerUp = (e: PointerEvent<SVGSVGElement | SVGGElement>) => {
+		if (dragState && dragState.pointerId === e.pointerId) {
+			try {
+				(e.target as Element).releasePointerCapture(e.pointerId);
+			} catch (_) {
+				// Ignore if capture was already gracefully lost
 			}
-		});
-	});
+			setDragState(null);
+		}
+	};
 
 	return (
 		<div
@@ -179,23 +268,27 @@ export const DFAGraph = memo(function DFAGraph({
 				backgroundSize: "20px 20px",
 			}}
 		>
-			<div className="hidden sm:flex absolute top-1.5 left-1.5 text-[10px] bg-white/80 border border-slate-300 px-2 py-1 rounded text-slate-500 shadow-sm pointer-events-none z-10 gap-2 font-bold">
-				<span className="border-l border-slate-300 pl-2">🖱️ Pan Background</span>
-				<span className="border-l border-slate-300 pl-2">📜 Zoom Scroll</span>
-				<span className="border-l border-slate-300 pl-2">✋ Drag Nodes</span>
+			<div className="absolute top-2 left-2 text-[10px] sm:text-[11px] bg-white/90 border border-slate-300 px-2 py-1.5 rounded text-slate-600 shadow-sm pointer-events-none z-10 flex flex-col sm:flex-row gap-1 sm:gap-3 font-semibold backdrop-blur-sm">
+				<span className="flex items-center gap-1 sm:border-l sm:border-slate-300 sm:first:border-0 sm:pl-2 sm:first:pl-0">
+					<span className="text-[12px]">🖱️</span> Pan / Drag
+				</span>
+				<span className="flex items-center gap-1 sm:border-l sm:border-slate-300 sm:pl-2">
+					<span className="text-[12px]">🤏</span> Zoom
+				</span>
 			</div>
 
 			<svg
 				ref={svgRef}
+				role="application"
+				aria-label="Interactive DFA Graph Workspace"
 				viewBox={`0 0 ${width} ${height}`}
-				className="drop-shadow-sm font-sans select-none cursor-grab active:cursor-grabbing w-full h-full"
+				className="drop-shadow-sm font-sans select-none touch-none cursor-grab active:cursor-grabbing w-full h-full"
 				style={{ overflow: "visible" }}
-				onMouseDown={(e) => handleMouseDown(e, null)}
-				onMouseMove={(e) => handleMouseMove(e)}
-				onMouseUp={handleMouseUp}
-				onMouseLeave={handleMouseUp}
+				onPointerDown={(e) => handlePointerDown(e, null)}
+				onPointerMove={handlePointerMove}
+				onPointerUp={handlePointerUp}
+				onPointerCancel={handlePointerUp}
 			>
-				<title>s</title>
 				<defs>
 					<linearGradient id="nodeGrad" x1="0" y1="0" x2="0" y2="1">
 						<stop offset="0%" stopColor="#ffffff" />
@@ -352,8 +445,9 @@ export const DFAGraph = memo(function DFAGraph({
 						return (
 							<g
 								key={`node-${s}`}
-								onMouseDown={(e) => handleMouseDown(e, s)}
+								onPointerDown={(e) => handlePointerDown(e, s)}
 								className="cursor-pointer"
+								aria-label={`State ${s}`}
 							>
 								{isStart && (
 									<path

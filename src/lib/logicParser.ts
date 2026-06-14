@@ -7,7 +7,7 @@ const Impl = createToken({ name: "Impl", pattern: /->/ });
 const Eq = createToken({ name: "Eq", pattern: /<->/ });
 const LParen = createToken({ name: "LParen", pattern: /\(/ });
 const RParen = createToken({ name: "RParen", pattern: /\)/ });
-const Var = createToken({ name: "Var", pattern: /[A-Z][A-Z0-9_]*/ });
+const Var = createToken({ name: "Var", pattern: /[A-Za-z][A-Za-z0-9_]*/ });
 const WhiteSpace = createToken({
 	name: "WhiteSpace",
 	pattern: /\s+/,

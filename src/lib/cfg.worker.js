@@ -1,16 +1,22 @@
+/**
+ * @typedef CFGRule {import("#types/cfg").CFGRule}
+ */
+
 self.onmessage = (e) => {
 	const data = e.data;
+
 	if (data.type === "GENERATE_CFG") {
 		const { id, startSymbol, rules, maxLen } = data;
 
 		try {
-			const ruleMap: Record<string, string[]> = {};
-			rules.forEach((r: any) => {
+			/** @type {Record<string, string[]>} */
+			const ruleMap = {};
+			rules.forEach((r /** @type {CFGRule} */) => {
 				const nt = r.nt.trim();
 				const prods = r.prods
 					.split("|")
-					.map((s: string) => s.trim())
-					.filter((s: string) => s.length > 0);
+					.map((s) => s.trim())
+					.filter((s) => s.length > 0);
 				if (nt && prods.length > 0) {
 					if (!ruleMap[nt]) ruleMap[nt] = [];
 					ruleMap[nt] = ruleMap[nt].concat(prods);
@@ -18,20 +24,32 @@ self.onmessage = (e) => {
 			});
 
 			if (!ruleMap[startSymbol]) {
-				throw new Error("Start symbol has no productions defined.");
+				self.postMessage({
+					id,
+					error: `Start symbol '${startSymbol}' has no productions defined.`,
+				});
+				return;
 			}
 
-			const queue: { sentence: string[]; history: string[] }[] = [
-				{ sentence: [startSymbol], history: [startSymbol] },
-			];
-			const generatedStrings = new Set<string>();
-			const validSolutions: { str: string; history: string[] }[] = [];
+			/** @type {{ sentence: string[]; history: string[] }[]} */
+			const queue = [{ sentence: [startSymbol], history: [startSymbol] }];
+			let head = 0; // Pointer to prevent O(N) shift overhead
+
+			/** @type {Set<string>} */
+			const generatedStrings = new Set();
+
+			/** @type {{ str: string; history: string[] }[]} */
+			const validSolutions = [];
 
 			let stepsLimit = 4000;
 
-			while (queue.length > 0 && stepsLimit > 0) {
+			while (head < queue.length && stepsLimit > 0) {
 				stepsLimit--;
-				const current = queue.shift();
+				const current = queue[head++];
+
+				if (typeof current === "undefined") {
+					break;
+				}
 
 				let firstNTIdx = -1;
 				for (let i = 0; i < current.sentence.length; i++) {
@@ -57,7 +75,7 @@ self.onmessage = (e) => {
 				}
 
 				const terminalCount = current.sentence
-					.filter((s: string) => !ruleMap[s])
+					.filter((s) => !ruleMap[s])
 					.join("")
 					.replace(/e/g, "").length;
 				if (terminalCount > maxLen) {
@@ -67,7 +85,7 @@ self.onmessage = (e) => {
 				const nt = current.sentence[firstNTIdx];
 				const productions = ruleMap[nt];
 
-				productions.forEach((prod: string) => {
+				productions.forEach((prod) => {
 					const newSentence = [...current.sentence];
 					const prodSymbols =
 						prod === "e"
@@ -79,7 +97,7 @@ self.onmessage = (e) => {
 					newSentence.splice(firstNTIdx, 1, ...prodSymbols);
 
 					if (
-						newSentence.filter((s: string) => !ruleMap[s]).join("").length <=
+						newSentence.filter((s) => !ruleMap[s]).join("").length <=
 						maxLen + 2
 					) {
 						queue.push({

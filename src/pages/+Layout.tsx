@@ -4,7 +4,7 @@ import { usePageContext } from "vike-react/usePageContext";
 import { Icon } from "#components/Icon";
 import { ToastProvider } from "#components/Toast";
 import { buttonVariants } from "#components/ui/Button";
-import { cn } from "#lib/cn";
+import { cn } from "#lib/utils";
 
 export default function Layout({ children }: { children: ReactNode }) {
 	const pageContext = usePageContext();

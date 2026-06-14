@@ -1,4 +1,6 @@
-import type { DFAStepHistory } from "#/types";
+/**
+ * @typedef DFAStepHistory {import("#types/dfa").DFAStepHistory}
+ */
 
 self.onmessage = (e) => {
 	const data = e.data;
@@ -14,7 +16,9 @@ self.onmessage = (e) => {
 
 		try {
 			const stringToTest = testInputString.trim();
-			const history: DFAStepHistory[] = [];
+
+			/** @type {DFAStepHistory[]} */
+			const history = [];
 			let currState = startState;
 
 			history.push({

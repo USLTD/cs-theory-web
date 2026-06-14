@@ -5,8 +5,7 @@ import { Button } from "#components/ui/Button";
 import { Panel, PanelHeader, PanelTitle } from "#components/ui/Panel";
 import { RESOLUTION_EXAMPLES } from "#constants/examples";
 import { useToast } from "#hooks/use-toast";
-import { cn } from "#lib/cn";
-import ResolutionWorker from "#lib/resolutionWorker?worker";
+import { cn } from "#lib/utils";
 import type { ResolutionDerivation } from "#types/res";
 
 export const ResolutionWorkspace = memo(function ResolutionWorkspace() {
@@ -18,7 +17,10 @@ export const ResolutionWorkspace = memo(function ResolutionWorkspace() {
 	const workerRef = useRef<Worker | null>(null);
 
 	useEffect(() => {
-		workerRef.current = new ResolutionWorker();
+		workerRef.current = new Worker(
+			new URL("#lib/resolution.worker.js", import.meta.url),
+			{ type: "module" },
+		);
 		return () => workerRef.current?.terminate();
 	}, []);
 

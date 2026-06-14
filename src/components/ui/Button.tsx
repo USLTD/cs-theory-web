@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { type ComponentProps, forwardRef } from "react";
-import { cn } from "#lib/cn";
+import { cn } from "#lib/utils";
 
 export const buttonVariants = cva(
 	[
@@ -16,10 +16,8 @@ export const buttonVariants = cva(
 					"border-portal-btn-border text-portal-text bg-linear-to-b from-portal-btn-start to-portal-btn-end hover:border-portal-btn-border-hover hover:from-portal-btn-hover-start hover:to-portal-btn-hover-end active:bg-portal-btn-hover-end active:[box-shadow:var(--shadow-portal-inset-strong)]",
 				primary:
 					"border-portal-btn-primary-border font-bold text-white bg-linear-to-b from-portal-btn-primary-start to-portal-btn-primary-end hover:border-portal-btn-primary-border-hover hover:from-portal-btn-primary-hover-start hover:to-portal-btn-primary-hover-end active:[box-shadow:var(--shadow-portal-inset-strong)] [text-shadow:0_-1px_0_rgba(0,0,0,0.25)]",
-				chip:
-					"border-portal-btn-border text-portal-text bg-linear-to-b from-portal-btn-start to-portal-btn-end px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] hover:border-portal-btn-border-hover hover:from-portal-btn-hover-start hover:to-portal-btn-hover-end active:bg-portal-btn-hover-end active:[box-shadow:var(--shadow-portal-inset-strong)]",
-				icon:
-					"h-8 w-8 px-0 py-0 border-portal-btn-border text-portal-text bg-linear-to-b from-portal-btn-start to-portal-btn-end hover:border-portal-btn-border-hover hover:from-portal-btn-hover-start hover:to-portal-btn-hover-end active:bg-portal-btn-hover-end active:[box-shadow:var(--shadow-portal-inset-strong)]",
+				chip: "border-portal-btn-border text-portal-text bg-linear-to-b from-portal-btn-start to-portal-btn-end px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] hover:border-portal-btn-border-hover hover:from-portal-btn-hover-start hover:to-portal-btn-hover-end active:bg-portal-btn-hover-end active:[box-shadow:var(--shadow-portal-inset-strong)]",
+				icon: "h-8 w-8 px-0 py-0 border-portal-btn-border text-portal-text bg-linear-to-b from-portal-btn-start to-portal-btn-end hover:border-portal-btn-border-hover hover:from-portal-btn-hover-start hover:to-portal-btn-hover-end active:bg-portal-btn-hover-end active:[box-shadow:var(--shadow-portal-inset-strong)]",
 			},
 		},
 		defaultVariants: {

@@ -1,6 +1,6 @@
 import { forwardRef, type ImgHTMLAttributes } from "react";
 import icons from "#constants/icons";
-import { cn } from "#lib/cn";
+import { cn } from "#lib/utils";
 
 type IconKey = keyof typeof icons;
 type IconBaseName = IconKey extends `${infer Name}__${string}` ? Name : never;
@@ -36,10 +36,7 @@ export const Icon = forwardRef<HTMLImageElement, IconProps>(function Icon(
 			ref={ref}
 			src={icons[key]}
 			alt={alt ?? String(name)}
-			className={cn(
-				"inline-block h-4 w-4 shrink-0 [image-rendering:pixelated]",
-				className,
-			)}
+			className={cn("inline-block shrink-0", className)}
 			width={size}
 			height={size}
 			decoding="async"

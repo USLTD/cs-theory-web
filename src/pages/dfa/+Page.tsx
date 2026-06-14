@@ -12,7 +12,6 @@ import { Button } from "#components/ui/Button";
 import { Panel, PanelHeader, PanelTitle } from "#components/ui/Panel";
 import { DFA_PRESETS } from "#constants/presets";
 import { useToast } from "#hooks/use-toast";
-import DFAWorker from "#lib/dfaWorker?worker";
 import type { DFAPreset, DFAStepHistory, DFATransitions } from "#types/dfa";
 
 export default function Page() {
@@ -51,7 +50,10 @@ export default function Page() {
 	const [mockResults, setMockResults] = useState<Record<string, boolean>>({});
 
 	useEffect(() => {
-		workerRef.current = new DFAWorker();
+		workerRef.current = new Worker(
+			new URL("#lib/dfa.worker.js", import.meta.url),
+			{ type: "module" },
+		);
 		return () => workerRef.current?.terminate();
 	}, []);
 
@@ -150,6 +152,17 @@ export default function Page() {
 		});
 	};
 
+	const handleDeleteSymbol = (symToRemove: string) => {
+		setAlphabet((prev) => prev.filter((s) => s !== symToRemove));
+		setTransitions((prev) => {
+			const next: DFATransitions = { ...prev };
+			Object.keys(next).forEach((state) => {
+				delete next[state][symToRemove];
+			});
+			return next;
+		});
+	};
+
 	const handleMatrixChange = (
 		state: string,
 		symbol: string,
@@ -188,6 +201,7 @@ export default function Page() {
 
 	useEffect(() => {
 		const config = DFA_PRESETS[presetSelection];
+
 		if (config) {
 			config.tests.forEach((tCase) => {
 				checkDFAWithMock(config, tCase);
@@ -400,6 +414,26 @@ export default function Page() {
 							<table className="listview-table select-none text-xs w-max min-w-full">
 								<thead>
 									<tr>
+										<th className="w-[1%] whitespace-nowrap"></th>
+										{alphabet.map((sym) => (
+											<th
+												key={`th-${sym}`}
+												className="text-center font-mono w-[1%] whitespace-nowrap px-2"
+											>
+												<Button
+													onClick={() => handleDeleteSymbol(sym)}
+													className="m-auto flex items-center justify-center p-1"
+													aria-label="Delete Symbol"
+													title="Delete Symbol"
+												>
+													Delete
+													<Icon name="cross" className="size-2" />
+												</Button>
+											</th>
+										))}
+										<th className="text-right w-[1%] whitespace-nowrap"></th>
+									</tr>
+									<tr>
 										<th className="w-[1%] whitespace-nowrap">State</th>
 										{alphabet.map((sym) => (
 											<th
@@ -448,8 +482,8 @@ export default function Page() {
 												<Button
 													onClick={() => handleDeleteState(state)}
 													className="m-auto flex items-center justify-center p-1"
-													aria-label="Delete"
-													title="Delete"
+													aria-label="Delete State"
+													title="Delete State"
 												>
 													<Icon name="cross" />
 												</Button>
@@ -484,7 +518,7 @@ export default function Page() {
 								placeholder="e.g. 10110"
 								className="grow font-mono text-sm tracking-widest px-2.5 py-1.5 border rounded"
 							/>
-							<Button onClick={initializeSimulation} variant="primary">
+							<Button onClick={(_) => initializeSimulation()} variant="primary">
 								<Icon name="lightning" />
 								Initialize
 							</Button>
@@ -710,7 +744,7 @@ export default function Page() {
 													>
 														{step.nextState}
 													</td>
-													<td className="p-1 px-2 text-slate-700 break-words whitespace-pre-wrap">
+													<td className="p-1 px-2 text-slate-700 wrap-break-word whitespace-pre-wrap">
 														{step.msg}
 													</td>
 												</tr>

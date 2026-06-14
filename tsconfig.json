@@ -1,63 +1,35 @@
 {
-  "compilerOptions": {
-    "strict": true,
-    "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "Bundler",
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
-    "types": [
-      "vite/client",
-      "vike-react"
-    ],
-    "noEmit": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
-    "allowArbitraryExtensions": true,
-    "paths": {
-      "#components/*": [
-        "src/components/*"
-      ],
-      "#constants/*": [
-        "src/constants/*"
-      ],
-      "#hooks/*": [
-        "src/hooks/*"
-      ],
-      "#lib/*": [
-        "src/lib/*"
-      ],
-      "#styles/*": [
-        "src/styles/*"
-      ],
-      "#types/*": [
-        "src/types/*"
-      ],
-      "#/*": [
-        "src/*"
-      ]
-    },
-    "plugins": [
-      {
-        "transform": "typia/lib/transform"
-      }
-    ],
-    "strictNullChecks": true
-  },
-  "exclude": [
-    "dist"
-  ],
-  "include": [
-    "src/**/*",
-    "pages/**/*",
-    "*.ts",
-    "*.tsx"
-  ]
+	"compilerOptions": {
+		"strict": true,
+		"target": "ES2022",
+		"module": "ES2022",
+		"moduleResolution": "Bundler",
+		"lib": ["DOM", "DOM.Iterable", "ESNext"],
+		"types": ["vite/client", "vike-react"],
+		"noEmit": true,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"jsx": "react-jsx",
+		"jsxImportSource": "react",
+		"allowJs": true,
+		"allowSyntheticDefaultImports": true,
+		"allowArbitraryExtensions": true,
+		"paths": {
+			"#components/*": ["./src/components/*"],
+			"#constants/*": ["./src/constants/*"],
+			"#hooks/*": ["./src/hooks/*"],
+			"#lib/*": ["./src/lib/*"],
+			"#styles/*": ["./src/styles/*"],
+			"#types/*": ["./src/types/*"],
+			"#/*": ["./src/*"]
+		},
+		"plugins": [
+			{
+				"transform": "typia/lib/transform"
+			}
+		],
+		"strictNullChecks": true
+	},
+	"exclude": ["dist"],
+	"include": ["src/**/*", "pages/**/*", "*.ts", "*.tsx"]
 }
