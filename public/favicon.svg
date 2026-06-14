@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E8E9EB"/>
+      <stop offset="100%" stop-color="#A0A3A8"/>
+    </linearGradient>
+    <linearGradient id="b" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6B9FE1"/>
+      <stop offset="100%" stop-color="#2B5F9E"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="13" fill="url(#b)" stroke="#1E3A6E" stroke-width="2"/>
+  <g transform="translate(32,30) scale(0.17)">
+    <path d="
+      M -38,-148 L 38,-148 L 42,-128 L 62,-120 L 78,-135 L 108,-105
+      L 93,-89 L 100,-70 L 120,-66 L 120,14 L 100,18 L 93,38
+      L 108,54 L 78,84 L 62,68 L 42,76 L 38,96 L -38,96
+      L -42,76 L -62,68 L -78,84 L -108,54 L -93,38 L -100,18
+      L -120,14 L -120,-66 L -100,-70 L -93,-89 L -108,-105
+      L -78,-135 L -62,-120 L -42,-128 Z"
+      fill="url(#g)" stroke="#4A4E54" stroke-width="14" stroke-linejoin="round"/>
+    <circle r="50" fill="#2B5F9E" stroke="#1E3A6E" stroke-width="10"/>
+    <text y="18" text-anchor="middle" font-family="Georgia,serif"
+          font-size="100" font-weight="bold" fill="#F0F1F3">A</text>
+  </g>
+</svg>
